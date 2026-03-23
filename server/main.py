@@ -4,6 +4,9 @@ from typing import List, Optional
 from pydantic import BaseModel
 from mock_data import inventory_items, orders, demand_forecasts, backlog_items, spending_summary, monthly_spending, category_spending, recent_transactions, purchase_orders
 
+# In-memory storage for submitted restocking orders
+submitted_orders = []
+
 app = FastAPI(title="Factory Inventory Management System")
 
 # Quarter mapping for date filtering
@@ -120,6 +123,21 @@ class CreatePurchaseOrderRequest(BaseModel):
     expected_delivery_date: str
     notes: Optional[str] = None
 
+class RestockingRecommendation(BaseModel):
+    item_sku: str
+    item_name: str
+    quantity_to_order: int
+    unit_cost: float
+    total_cost: float
+    priority_score: float
+
+class RestockingOrder(BaseModel):
+    id: str
+    items: List[dict]
+    total_cost: float
+    submitted_date: str
+    expected_delivery: str
+
 # API endpoints
 @app.get("/")
 def root():
@@ -178,6 +196,110 @@ def get_backlog():
         item_dict["has_purchase_order"] = has_po
         result.append(item_dict)
     return result
+
+@app.get("/api/purchase-orders", response_model=List[PurchaseOrder])
+def get_purchase_orders():
+    """Get all purchase orders"""
+    return purchase_orders
+
+@app.post("/api/purchase-orders", response_model=PurchaseOrder)
+def create_purchase_order(request: CreatePurchaseOrderRequest):
+    """Create a new purchase order"""
+    # Generate new ID
+    new_id = str(max(int(po["id"]) for po in purchase_orders) + 1) if purchase_orders else "1"
+    new_po = {
+        "id": new_id,
+        "backlog_item_id": request.backlog_item_id,
+        "supplier_name": request.supplier_name,
+        "quantity": request.quantity,
+        "unit_cost": request.unit_cost,
+        "expected_delivery_date": request.expected_delivery_date,
+        "status": "Pending",
+        "created_date": "2025-09-30T10:30:00",  # Use current date in real app
+        "notes": request.notes
+    }
+    purchase_orders.append(new_po)
+    return new_po
+
+@app.get("/api/purchase-orders/{po_id}", response_model=PurchaseOrder)
+def get_purchase_order(po_id: str):
+    """Get a specific purchase order"""
+    po = next((po for po in purchase_orders if po["id"] == po_id), None)
+    if not po:
+        raise HTTPException(status_code=404, detail="Purchase order not found")
+    return po
+
+@app.get("/api/restocking/recommendations", response_model=List[RestockingRecommendation])
+def get_restocking_recommendations(budget: float):
+    """Get restocking recommendations based on budget"""
+    recommendations = []
+    
+    # For each inventory item, generate restocking recommendations
+    for inv_item in inventory_items:
+        sku = inv_item["sku"]
+        current_stock = inv_item["quantity_on_hand"]
+        reorder_point = inv_item["reorder_point"]
+        unit_cost = inv_item["unit_cost"]
+        item_name = inv_item["name"]
+        
+        # Calculate quantity to order: bring stock up to 2x reorder point
+        target_stock = reorder_point * 2
+        quantity_needed = max(0, target_stock - current_stock)
+        
+        if quantity_needed > 0:
+            total_cost = quantity_needed * unit_cost
+            
+            # Priority score: items below reorder point get highest priority
+            # Secondary factor: inventory value (unit cost * quantity)
+            if current_stock < reorder_point:
+                priority_score = 100.0 + (unit_cost * quantity_needed)
+            else:
+                priority_score = unit_cost * quantity_needed
+            
+            recommendations.append({
+                "item_sku": sku,
+                "item_name": item_name,
+                "quantity_to_order": quantity_needed,
+                "unit_cost": unit_cost,
+                "total_cost": total_cost,
+                "priority_score": priority_score
+            })
+    
+    # Sort by priority_score descending (critical items first)
+    recommendations.sort(key=lambda x: x["priority_score"], reverse=True)
+    
+    # Allocate budget: select highest priority items that fit within budget
+    selected = []
+    remaining_budget = budget
+    for rec in recommendations:
+        if rec["total_cost"] <= remaining_budget:
+            selected.append(rec)
+            remaining_budget -= rec["total_cost"]
+    
+    return selected
+
+@app.post("/api/restocking/orders", response_model=RestockingOrder)
+def place_restocking_order(items: List[dict]):
+    """Place a restocking order"""
+    total_cost = sum(item["total_cost"] for item in items)
+    from datetime import datetime, timedelta
+    submitted_date = datetime.now().isoformat()
+    expected_delivery = (datetime.now() + timedelta(days=5)).isoformat()
+    new_id = str(len(submitted_orders) + 1)
+    order = {
+        "id": new_id,
+        "items": items,
+        "total_cost": total_cost,
+        "submitted_date": submitted_date,
+        "expected_delivery": expected_delivery
+    }
+    submitted_orders.append(order)
+    return order
+
+@app.get("/api/orders/submitted", response_model=List[RestockingOrder])
+def get_submitted_orders():
+    """Get submitted restocking orders"""
+    return submitted_orders
 
 @app.get("/api/dashboard/summary")
 def get_dashboard_summary(

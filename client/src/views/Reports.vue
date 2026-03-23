@@ -153,13 +153,13 @@ export default {
 
         // Fetch quarterly data
         console.log('Fetching quarterly data...')
-        const quarterlyResponse = await axios.get('http://localhost:8001/api/reports/quarterly')
+        const quarterlyResponse = await axios.get('http://127.0.0.1:8000/api/reports/quarterly')
         this.quarterlyData = quarterlyResponse.data
         console.log('Quarterly data:', this.quarterlyData)
 
         // Fetch monthly data
         console.log('Fetching monthly data...')
-        const monthlyResponse = await axios.get('http://localhost:8001/api/reports/monthly-trends')
+        const monthlyResponse = await axios.get('http://127.0.0.1:8000/api/reports/monthly-trends')
         this.monthlyData = monthlyResponse.data
         console.log('Monthly data:', this.monthlyData)
 

@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_BASE_URL = 'http://localhost:8001/api'
+const API_BASE_URL = 'http://127.0.0.1:8001/api'
 
 export const api = {
   async getInventory(filters = {}) {
@@ -101,6 +101,21 @@ export const api = {
 
   async getPurchaseOrderByBacklogItem(backlogItemId) {
     const response = await axios.get(`${API_BASE_URL}/purchase-orders/${backlogItemId}`)
+    return response.data
+  },
+
+  async getRestockingRecommendations(budget) {
+    const response = await axios.get(`${API_BASE_URL}/restocking/recommendations?budget=${budget}`)
+    return response.data
+  },
+
+  async placeRestockingOrder(items) {
+    const response = await axios.post(`${API_BASE_URL}/restocking/orders`, items)
+    return response.data
+  },
+
+  async getSubmittedOrders() {
+    const response = await axios.get(`${API_BASE_URL}/orders/submitted`)
     return response.data
   }
 }
