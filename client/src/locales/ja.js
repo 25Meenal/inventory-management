@@ -106,6 +106,7 @@ export default {
     title: '注文',
     description: '顧客注文の表示と管理',
     allOrders: 'すべての注文',
+    submittedOrders: '提出された注文',
     totalOrders: '総注文数',
     totalRevenue: '総収益',
     avgOrderValue: '平均注文額',
@@ -116,6 +117,7 @@ export default {
       orderNumber: '注文番号',
       orderId: '注文ID',
       orderDate: '注文日',
+      submittedDate: '提出日',
       date: '日付',
       customer: '顧客',
       category: 'カテゴリ',
@@ -126,6 +128,29 @@ export default {
       status: 'ステータス',
       expectedDelivery: '予定配達日',
       actualDelivery: '実際の配達日'
+    }
+  },
+
+  // Restocking
+  restocking: {
+    title: '再入荷',
+    budget: {
+      title: '予算設定',
+      current: '現在の予算'
+    },
+    recommendations: {
+      title: '推奨品目',
+      none: '現在の予算で利用可能な推奨事項はありません。',
+      sku: 'SKU',
+      quantity: '注文数量',
+      unitCost: '単価',
+      totalCost: '合計コスト'
+    },
+    order: {
+      totalItems: '合計品目',
+      totalCost: '合計コスト',
+      place: '注文する',
+      success: '注文が正常に送信されました！'
     }
   },
 

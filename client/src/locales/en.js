@@ -106,6 +106,7 @@ export default {
     title: 'Orders',
     description: 'View and manage customer orders',
     allOrders: 'All Orders',
+    submittedOrders: 'Submitted Orders',
     totalOrders: 'Total Orders',
     totalRevenue: 'Total Revenue',
     avgOrderValue: 'Avg Order Value',
@@ -116,6 +117,7 @@ export default {
       orderNumber: 'Order Number',
       orderId: 'Order ID',
       orderDate: 'Order Date',
+      submittedDate: 'Submitted Date',
       date: 'Date',
       customer: 'Customer',
       category: 'Category',
@@ -126,6 +128,29 @@ export default {
       status: 'Status',
       expectedDelivery: 'Expected Delivery',
       actualDelivery: 'Actual Delivery'
+    }
+  },
+
+  // Restocking
+  restocking: {
+    title: 'Restocking',
+    budget: {
+      title: 'Budget Settings',
+      current: 'Current Budget'
+    },
+    recommendations: {
+      title: 'Recommended Items',
+      none: 'No recommendations available for the current budget.',
+      sku: 'SKU',
+      quantity: 'Quantity to Order',
+      unitCost: 'Unit Cost',
+      totalCost: 'Total Cost'
+    },
+    order: {
+      totalItems: 'Total Items',
+      totalCost: 'Total Cost',
+      place: 'Place Order',
+      success: 'Order placed successfully!'
     }
   },
 

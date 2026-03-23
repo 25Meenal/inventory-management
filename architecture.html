@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Management System Architecture</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #0f172a;
+        }
+        h1 {
+            text-align: center;
+            border-bottom: 2px solid #64748b;
+            padding-bottom: 10px;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .tech-stack {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+        }
+        .tech-item {
+            background: #e2e8f0;
+            padding: 10px;
+            margin: 5px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .diagram {
+            background: #f9f9f9;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #0f172a;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Inventory Management System Architecture</h1>
+
+        <div class="section">
+            <h2>Tech Stack</h2>
+            <div class="tech-stack">
+                <div class="tech-item">
+                    <strong>Frontend</strong><br>
+                    Vue 3 + Composition API + Vite<br>
+                    Port: 3000
+                </div>
+                <div class="tech-item">
+                    <strong>Backend</strong><br>
+                    Python FastAPI + Pydantic<br>
+                    Port: 8001
+                </div>
+                <div class="tech-item">
+                    <strong>Data Storage</strong><br>
+                    JSON files (in-memory mock data)<br>
+                    No database
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>System Architecture</h2>
+            <p>The system is a full-stack factory inventory management application with in-memory mock data storage, centralized filtering, and RESTful API.</p>
+            <div class="diagram">
+Architecture Overview:
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Vue 3 Frontend│    │  FastAPI Backend│    │   JSON Data     │
+│   (Port 3000)   │◄──►│   (Port 8001)   │◄──►│   (server/data/) │
+│                 │    │                 │    │                 │
+│ - Components    │    │ - Endpoints     │    │ - inventory.json│
+│ - Views         │    │ - Filtering     │    │ - orders.json   │
+│ - Composables   │    │ - Validation    │    │ - demand.json   │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Data Flow</h2>
+            <div class="diagram">
+Data Flow:
+User Interaction (Vue Component)
+    ↓
+useFilters() composable (selectedPeriod, selectedLocation, selectedCategory, selectedStatus)
+    ↓
+FilterBar components updates global filter state
+    ↓
+API call from client/src/api.js with filter params
+    ↓
+FastAPI endpoint receives query parameters
+    ↓
+apply_filters() + filter_by_month() functions transform data
+    ↓
+Pydantic models validate response
+    ↓
+JSON response back to frontend
+    ↓
+Refs hold raw data (allOrders, inventoryItems, etc.)
+    ↓
+Computed properties derive filtered/formatted data
+    ↓
+Vue template renders with reactivity
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Key Components</h2>
+            <h3>Frontend</h3>
+            <ul>
+                <li><strong>Views:</strong> Dashboard, Inventory, Orders, Demand, Spending, Backlog, Reports</li>
+                <li><strong>Components:</strong> FilterBar, Modals (ProductDetail, InventoryDetail, etc.), LanguageSwitcher</li>
+                <li><strong>Composables:</strong> useFilters (global filter state), useAuth, useI18n</li>
+                <li><strong>API Client:</strong> api.js (centralized Axios calls)</li>
+            </ul>
+            <h3>Backend</h3>
+            <ul>
+                <li><strong>Main:</strong> main.py (FastAPI app, endpoints)</li>
+                <li><strong>Data:</strong> mock_data.py (loads JSON files)</li>
+                <li><strong>Models:</strong> Pydantic models for validation</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>API Endpoints</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Endpoint</th>
+                        <th>Method</th>
+                        <th>Filters</th>
+                        <th>Purpose</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>/api/inventory</td>
+                        <td>GET</td>
+                        <td>warehouse, category</td>
+                        <td>Get inventory items</td>
+                    </tr>
+                    <tr>
+                        <td>/api/orders</td>
+                        <td>GET</td>
+                        <td>warehouse, category, status, month</td>
+                        <td>Get orders</td>
+                    </tr>
+                    <tr>
+                        <td>/api/dashboard/summary</td>
+                        <td>GET</td>
+                        <td>All filters</td>
+                        <td>Summary statistics</td>
+                    </tr>
+                    <tr>
+                        <td>/api/demand</td>
+                        <td>GET</td>
+                        <td>None</td>
+                        <td>Demand forecasts</td>
+                    </tr>
+                    <tr>
+                        <td>/api/backlog</td>
+                        <td>GET</td>
+                        <td>None</td>
+                        <td>Backlog items</td>
+                    </tr>
+                    <tr>
+                        <td>/api/spending/*</td>
+                        <td>GET</td>
+                        <td>None</td>
+                        <td>Spending data</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>Filter System</h2>
+            <p>Centralized filtering with 4 global filters:</p>
+            <ul>
+                <li><strong>Time Period:</strong> All, Q1-2025 to Q4-2025, or specific months</li>
+                <li><strong>Warehouse:</strong> All, San Francisco, Tokyo, Berlin</li>
+                <li><strong>Category:</strong> All, Circuit Boards, Sensors, Actuators, Controllers</li>
+                <li><strong>Order Status:</strong> All, Delivered, Shipped, Processing, Backordered</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
